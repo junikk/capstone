@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>My Voice, My Song - AI 노래 커버</title>
-  
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -11,79 +10,6 @@
       background-color: #f5f5f5;
       display: flex;
     }
-
-.model-selector {
-  margin-top: 25px;
-}
-
-.dropdown {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 14px;
-  cursor: pointer;
-  position: relative;
-  background-color: #fff;
-  font-weight: bold;
-}
-
-#selected-model {
-  display: block;
-  font-size: 16px;
-}
-
-.dropdown-options {
-  display: none;
-  position: absolute;
-  background-color: #fff;
-  width: 100%;
-  top: 100%;
-  left: 0;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  z-index: 1000;
-  margin-top: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.model-option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  transition: background-color 0.2s;
-}
-
-.model-option:hover {
-  background-color: #f0f0f0;
-}
-
-.model-option img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.model-option p {
-  margin: 0;
-  font-size: 15px;
-}
-
-
-    .brand {
-  text-align: center;
-  font-size: 15px;
-  font-weight: bold;
-  color: #ecf0f1;
-  margin-bottom: 30px;
-  line-height: 1.4;
-  opacity: 0.85;
-  letter-spacing: 0.5px;
-  font-family: 'Segoe UI', sans-serif;
-}
-
-    
-    /* 왼쪽 사이드 배너 */
     .sidebar {
       width: 200px;
       background-color: #2c3e50;
@@ -92,13 +18,11 @@
       padding-top: 40px;
       position: fixed;
     }
-
     .sidebar h2 {
       text-align: center;
       margin-bottom: 30px;
       font-size: 18px;
     }
-
     .sidebar a {
       display: block;
       padding: 15px 20px;
@@ -106,18 +30,25 @@
       text-decoration: none;
       transition: background-color 0.3s;
     }
-
     .sidebar a:hover {
       background-color: #1abc9c;
     }
-
-    /* 오른쪽 본문 */
+    .brand {
+      text-align: center;
+      font-size: 15px;
+      font-weight: bold;
+      color: #ecf0f1;
+      margin-bottom: 30px;
+      line-height: 1.4;
+      opacity: 0.85;
+      letter-spacing: 0.5px;
+      font-family: 'Segoe UI', sans-serif;
+    }
     .main {
       margin-left: 200px;
       padding: 40px;
       flex-grow: 1;
     }
-
     .container {
       max-width: 600px;
       margin: auto;
@@ -126,27 +57,22 @@
       border-radius: 12px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
     h1 {
       text-align: center;
       color: #333;
     }
-
     label {
       display: block;
       margin-top: 20px;
       font-weight: bold;
     }
-
-    input[type="file"],
-    select {
+    input[type="file"] {
       width: 100%;
       padding: 8px;
       margin-top: 8px;
       border: 1px solid #ccc;
       border-radius: 8px;
     }
-
     button {
       width: 100%;
       padding: 12px;
@@ -158,89 +84,238 @@
       margin-top: 25px;
       cursor: pointer;
     }
-
     button:hover {
       background-color: #0056b3;
     }
-
+    #selected-model {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    .model-img-placeholder img {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .dropdown {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 14px;
+      cursor: pointer;
+      position: relative;
+      background-color: #fff;
+      font-weight: bold;
+    }
+    .dropdown-options {
+      display: none;
+      position: absolute;
+      background-color: #fff;
+      width: 100%;
+      top: 100%;
+      left: 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      z-index: 1000;
+      margin-top: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .model-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      transition: background-color 0.2s;
+    }
+    .model-option:hover {
+      background-color: #f0f0f0;
+    }
+    .model-option img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .model-option p {
+      margin: 0;
+      font-size: 15px;
+    }
     audio {
       margin-top: 20px;
       width: 100%;
     }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .close {
+      float: right;
+      font-size: 24px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-
-
-
-<!-- 사이드 메뉴 -->
-<div class="sidebar">
-  <div class="brand">
-  <span>🎙 My Voice,<br>My Song</span>
+  <div class="sidebar">
+    <div class="brand">
+      <span>🎙 My Voice,<br>My Song</span>
+    </div>
+    <h2>메뉴</h2>
+    <a href="ai_cover.html">🎙 AI 커버 제작</a>
+    <a href="ai_learning.html">🧠 AI 음성 학습</a>
   </div>
-  <h2>메뉴</h2>
-  <a href="ai_cover.html">🎙 AI 커버 제작</a>
-  <a href="ai_learning.html">🧠 AI 음성 학습</a>
-</div>
 
-  <!-- 본문 -->
   <div class="main">
     <div class="container">
-      <h1>AI 노래 커버 </h1>
+      <h1>AI 노래 커버</h1>
 
-    
-<!-- AI 모델 선택 섹션 -->
-<div class="model-selector">
-  <label for="model">👤 AI 음색 모델</label>
-  <div class="dropdown" onclick="toggleDropdown()">
-    <span id="selected-model">AI 모델 선택하기</span>
-    <div class="dropdown-options" id="dropdown-options">
-      <div class="model-option" onclick="selectModel('마이클잭슨')">
-        <img src="mj.jpg" alt="마이클잭슨"><p>마이클잭슨</p>
+      <label>👤 AI 음색 모델</label>
+      <div class="dropdown" onclick="toggleDropdown()">
+        <div id="selected-model">
+          <span class="model-img-placeholder"></span>
+          <span class="model-name">AI 모델 선택하기</span>
+        </div>
+        <div class="dropdown-options" id="dropdown-options"></div>
       </div>
-      <div class="model-option" onclick="selectModel('아이유')">
-        <img src="iu.png" alt="아이유"><p>아이유</p>
+
+      <div id="model-preview" style="display:none; margin-top: 15px;">
+        <label>🎧 선택된 모델 미리듣기</label>
+        <audio id="sample-player" controls></audio>
       </div>
-      <div class="model-option" onclick="selectModel('카리나')">
-        <img src="karina.jpg" alt="카리나"><p>카리나</p>
-      </div>
-    </div>
-  </div>
-</div>
 
-        <label for="song">🎵 노래 파일 업로드</label>
-      <input type="file" id="song" name="song" accept="audio/*">
+      <label for="song">🎵 노래 파일 업로드</label>
+      <input type="file" id="song" name="song" accept="audio/*" onchange="previewSong(event)">
+      <audio id="preview-audio" controls style="display:none;"></audio>
 
-      <button onclick="alert('AI 커버 생성 기능은 추후 연동됩니다')">AI 커버 생성</button>
-
-      <audio controls>
-        <source src="cover_result.mp3" type="audio/mp3">
-        브라우저가 오디오 재생을 지원하지 않습니다.
-      </audio>
+      <button onclick="alert('AI 커버 생성 기능은 추후 연동됩니다.')">AI 커버 생성</button>
     </div>
   </div>
 
-<script>
-  function toggleDropdown() {
-    const options = document.getElementById('dropdown-options');
-    options.style.display = options.style.display === 'block' ? 'none' : 'block';
-  }
+  <div id="customModelModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeCustomModal()">&times;</span>
+      <h2>내가 만든 AI 모델 선택</h2>
+      <div id="custom-model-list"></div>
+    </div>
+  </div>
 
-  function selectModel(name) {
-    document.getElementById('selected-model').innerText = name + ' 선택됨';
-    document.getElementById('dropdown-options').style.display = 'none';
-    // 여기에 선택된 모델 값을 백엔드로 넘기거나 저장하는 로직 추가 가능
-  }
+  <script>
+    const defaultModels = [
+      { name: '마이클잭슨', image: 'mj.jpg', sample: 'mj_sample.mp3' },
+      { name: '박명수', image: 'park.jpg', sample: 'park_sample.mp3' }, // ✅ 박명수 추가됨
+      { name: '아이유', image: 'iu.png', sample: 'iu_sample.mp3' },
+      { name: '카리나', image: 'karina.jpg', sample: 'karina_sample.mp3' }
+       
+    ];
 
-  // 외부 클릭 시 닫기
-  window.onclick = function(e) {
-    const dropdown = document.getElementById('dropdown-options');
-    if (!e.target.closest('.dropdown')) {
-      dropdown.style.display = 'none';
+    const customModels = [
+      { name: '내모델1', image: 'custom1.jpg' },
+      { name: '내모델2', image: 'custom2.jpg' }
+    ];
+
+    function toggleDropdown() {
+      const options = document.getElementById('dropdown-options');
+      options.style.display = options.style.display === 'block' ? 'none' : 'block';
     }
-  }
-</script>
 
+    function selectModel(name, imgPath, samplePath) {
+      const modelBox = document.getElementById('selected-model');
+      modelBox.innerHTML = `
+        <span class="model-img-placeholder">
+          <img src="${imgPath}" alt="${name}">
+        </span>
+        <span class="model-name">${name} 선택됨</span>
+      `;
+      document.getElementById('dropdown-options').style.display = 'none';
+      closeCustomModal();
 
+      if (samplePath) {
+        const previewDiv = document.getElementById('model-preview');
+        const player = document.getElementById('sample-player');
+        player.src = samplePath;
+        previewDiv.style.display = 'block';
+      } else {
+        document.getElementById('model-preview').style.display = 'none';
+      }
+    }
+
+    function loadModels() {
+      const options = document.getElementById('dropdown-options');
+      options.innerHTML = '';
+      defaultModels.forEach(model => {
+        options.insertAdjacentHTML('beforeend', `
+          <div class="model-option" onclick="selectModel('${model.name}', '${model.image}', '${model.sample}')">
+            <img src="${model.image}" alt="${model.name}">
+            <p>${model.name}</p>
+          </div>
+        `);
+      });
+      options.insertAdjacentHTML('beforeend', `
+        <div class="model-option" onclick="openCustomModal()">
+          <p style="color:#1abc9c">➕ 내가 만든 모델 선택하기</p>
+        </div>
+      `);
+    }
+
+    function openCustomModal() {
+      const modal = document.getElementById('customModelModal');
+      const list = document.getElementById('custom-model-list');
+      list.innerHTML = '';
+      customModels.forEach(model => {
+        list.insertAdjacentHTML('beforeend', `
+          <div class="model-option" onclick="selectModel('${model.name}', '${model.image}', '')">
+            <img src="${model.image}" alt="${model.name}"><p>${model.name}</p>
+          </div>
+        `);
+      });
+      modal.style.display = 'flex';
+    }
+
+    function closeCustomModal() {
+      document.getElementById('customModelModal').style.display = 'none';
+    }
+
+    function previewSong(event) {
+      const file = event.target.files[0];
+      const audio = document.getElementById('preview-audio');
+      if (file) {
+        const url = URL.createObjectURL(file);
+        audio.src = url;
+        audio.style.display = 'block';
+      }
+    }
+
+    window.onload = () => {
+      loadModels();
+    }
+
+    window.onclick = function(e) {
+      const dropdown = document.getElementById('dropdown-options');
+      const modal = document.getElementById('customModelModal');
+      if (!e.target.closest('.dropdown')) {
+        dropdown.style.display = 'none';
+      }
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    }
+  </script>
 </body>
 </html>
