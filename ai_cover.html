@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -65,6 +66,8 @@
       display: block;
       margin-top: 20px;
       font-weight: bold;
+      margin-bottom: 10px;  /* ✅ 이 줄 추가 */
+      
     }
     input[type="file"] {
       width: 100%;
@@ -90,24 +93,26 @@
     #selected-model {
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-size: 16px;
-      margin-top: 10px;
+      gap: 8px;
+      font-size: 14px;
+      margin-top: 1px;
+    
     }
     .model-img-placeholder img {
-      width: 36px;
-      height: 36px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       object-fit: cover;
     }
     .dropdown {
       border: 1px solid #ccc;
       border-radius: 8px;
-      padding: 14px;
+       padding: 10px 14px; /* 기존 14px에서 줄임 */
       cursor: pointer;
       position: relative;
       background-color: #fff;
       font-weight: bold;
+       font-size: 14px; /* 글자 크기 약간 줄임 */
     }
     .dropdown-options {
       display: none;
@@ -121,6 +126,8 @@
       z-index: 1000;
       margin-top: 8px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      max-height: 200px;
+      overflow-y: auto;
     }
     .model-option {
       display: flex;
@@ -141,6 +148,16 @@
     .model-option p {
       margin: 0;
       font-size: 15px;
+    }
+    .fixed-option {
+      position: sticky;
+      bottom: 0;
+      background-color: white;
+      text-align: center;
+      font-weight: bold;
+      padding: 12px;
+      border-top: 1px solid #ccc;
+      cursor: pointer;
     }
     audio {
       margin-top: 20px;
@@ -186,28 +203,29 @@
     <div class="container">
       <h1>AI 노래 커버</h1>
 
-      <label>👤 AI 음색 모델</label>
-      <div class="dropdown" onclick="toggleDropdown()">
-        <div id="selected-model">
-          <span class="model-img-placeholder"></span>
-          <span class="model-name">AI 모델 선택하기</span>
-        </div>
-        <div class="dropdown-options" id="dropdown-options"></div>
-      </div>
 
-      <div id="model-preview" style="display:none; margin-top: 15px;">
-        <label>🎧 선택된 모델 미리듣기</label>
-        <audio id="sample-player" controls></audio>
-      </div>
-
-      <label for="song">🎵 노래 파일 업로드</label>
-      <input type="file" id="song" name="song" accept="audio/*" onchange="previewSong(event)">
-      <audio id="preview-audio" controls style="display:none;"></audio>
-
-      <!-- <button onclick="alert('AI 커버 생성 기능은 추후 연동됩니다.')">AI 커버 생성</button> -->
-      <button onclick="uploadSong()">AI 커버 생성</button>
-
+  <label>👤 AI 음색 모델</label>
+  <div class="dropdown" onclick="toggleDropdown()">
+    <div id="selected-model">
+      <span class="model-img-placeholder"></span>
+      <span class="model-name">AI 모델 선택하기</span>
     </div>
+    <div class="dropdown-options" id="dropdown-options"></div>
+  </div>
+
+  <div id="model-preview" style="display:none; margin-top: 15px;">
+    <label>🎧 선택된 모델 미리듣기</label>
+    <audio id="sample-player" controls></audio>
+  </div>
+
+  <label for="song">🎵 노래 파일 업로드</label>
+  <input type="file" id="song" name="song" accept="audio/*" onchange="previewSong(event)">
+  <audio id="preview-audio" controls style="display:none;"></audio>
+
+  <button onclick="uploadSong()">AI 커버 생성</button>
+</div>
+
+
   </div>
 
   <div id="customModelModal" class="modal">
@@ -218,148 +236,140 @@
     </div>
   </div>
 
-  <script>
+<script>
+  let selectedModel = null;
+  const defaultModels = [
+    { name: '이준익', image: 'junik.jpg', sample: 'junik_sample.mp3' },
+    { name: '마이클잭슨', image: 'mj.jpg', sample: 'mj_sample.mp3' },
+    { name: '박명수', image: 'park.jpg', sample: 'park_sample.mp3' },
+    { name: '징크스', image: 'jinx.jpg', sample: 'jinx_sample.mp3' },
+    { name: '아이유', image: 'iu.png', sample: 'iu_sample.mp3' },
+    { name: '카리나', image: 'karina.jpg', sample: 'karina_sample.mp3' }
+  ];
+  const customModels = [
+    { name: '내모델1', image: 'custom1.jpg' },
+    { name: '내모델2', image: 'custom2.jpg' }
+  ];
 
-    let selectedModel = null;
-    const defaultModels = [
-      { name: '마이클잭슨', image: 'mj.jpg', sample: 'mj_sample.mp3' },
-      { name: '박명수', image: 'park.jpg', sample: 'park_sample.mp3' }, // ✅ 박명수 추가됨
-      { name: '아이유', image: 'iu.png', sample: 'iu_sample.mp3' },
-      { name: '카리나', image: 'karina.jpg', sample: 'karina_sample.mp3' }
-       
-    ];
-
-    const customModels = [
-      { name: '내모델1', image: 'custom1.jpg' },
-      { name: '내모델2', image: 'custom2.jpg' }
-    ];
-
-    function toggleDropdown() {
-      const options = document.getElementById('dropdown-options');
-      options.style.display = options.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function selectModel(name, imgPath, samplePath) {
-    selectedModel = name; // ✅ 선택된 모델 저장
-      const modelBox = document.getElementById('selected-model');
-      modelBox.innerHTML = `
-        <span class="model-img-placeholder">
-          <img src="${imgPath}" alt="${name}">
-        </span>
-        <span class="model-name">${name} 선택됨</span>
-      `;
-      document.getElementById('dropdown-options').style.display = 'none';
-      closeCustomModal();
-
-      if (samplePath) {
-        const previewDiv = document.getElementById('model-preview');
-        const player = document.getElementById('sample-player');
-        player.src = samplePath;
-        previewDiv.style.display = 'block';
-      } else {
-        document.getElementById('model-preview').style.display = 'none';
-      }
-    }
-
-    function loadModels() {
-      const options = document.getElementById('dropdown-options');
-      options.innerHTML = '';
-      defaultModels.forEach(model => {
-        options.insertAdjacentHTML('beforeend', `
-          <div class="model-option" onclick="selectModel('${model.name}', '${model.image}', '${model.sample}')">
-            <img src="${model.image}" alt="${model.name}">
-            <p>${model.name}</p>
-          </div>
-        `);
-      });
-      options.insertAdjacentHTML('beforeend', `
-        <div class="model-option" onclick="openCustomModal()">
-          <p style="color:#1abc9c">➕ 내가 만든 모델 선택하기</p>
-        </div>
-      `);
-    }
-
-    function openCustomModal() {
-      const modal = document.getElementById('customModelModal');
-      const list = document.getElementById('custom-model-list');
-      list.innerHTML = '';
-      customModels.forEach(model => {
-        list.insertAdjacentHTML('beforeend', `
-          <div class="model-option" onclick="selectModel('${model.name}', '${model.image}', '')">
-            <img src="${model.image}" alt="${model.name}"><p>${model.name}</p>
-          </div>
-        `);
-      });
-      modal.style.display = 'flex';
-    }
-
-    function closeCustomModal() {
-      document.getElementById('customModelModal').style.display = 'none';
-    }
-
-    function previewSong(event) {
-      const file = event.target.files[0];
-      const audio = document.getElementById('preview-audio');
-      if (file) {
-        const url = URL.createObjectURL(file);
-        audio.src = url;
-        audio.style.display = 'block';
-      }
-    }
-
-    window.onload = () => {
-      loadModels();
-    }
-
-    window.onclick = function(e) {
-      const dropdown = document.getElementById('dropdown-options');
-      const modal = document.getElementById('customModelModal');
-      if (!e.target.closest('.dropdown')) {
-        dropdown.style.display = 'none';
-      }
-      if (e.target === modal) {
-        modal.style.display = 'none';
-      }
-    }
-  </script>
-  <script>
-function uploadSong() {
-  const fileInput = document.getElementById('song');
-  const file = fileInput.files[0];
-  
- // 체크 2: 모델 선택
-      if (!selectedModel) {
-        alert("👤 AI 음색 모델을 선택해주세요!");
-        return;
-      }
-
-if (!file) {
-    alert("🎵 노래 파일을 선택해주세요!");
-    return;
+  function toggleDropdown() {
+    const options = document.getElementById('dropdown-options');
+    options.style.display = options.style.display === 'block' ? 'none' : 'block';
   }
 
-  const formData = new FormData();
-  formData.append('song', file);
-  formData.append('model', selectedModel); // ✅ 선택된 모델도 함께 전송
+  function selectModel(name, imgPath, samplePath) {
+    selectedModel = name;
+    const modelBox = document.getElementById('selected-model');
+    modelBox.innerHTML = `
+      <span class="model-img-placeholder">
+        <img src="${imgPath}" alt="${name}">
+      </span>
+      <span class="model-name">${name} 선택됨</span>
+    `;
+    document.getElementById('dropdown-options').style.display = 'none';
+    closeCustomModal();
 
+    if (samplePath) {
+      const previewDiv = document.getElementById('model-preview');
+      const player = document.getElementById('sample-player');
+      player.src = samplePath;
+      previewDiv.style.display = 'block';
+    } else {
+      document.getElementById('model-preview').style.display = 'none';
+    }
+  }
 
+  function loadModels() {
+    const options = document.getElementById('dropdown-options');
+    options.innerHTML = '';
+    defaultModels.forEach(model => {
+      options.insertAdjacentHTML('beforeend', `
+        <div class="model-option" onclick="selectModel('${model.name}', '${model.image}', '${model.sample}')">
+          <img src="${model.image}" alt="${model.name}">
+          <p>${model.name}</p>
+        </div>
+      `);
+    });
+    options.insertAdjacentHTML('beforeend', `
+      <div class="fixed-option" onclick="openCustomModal()">
+        ➕ 내가 만든 모델 선택하기
+      </div>
+    `);
+  }
+
+  function openCustomModal() {
+    const modal = document.getElementById('customModelModal');
+    const list = document.getElementById('custom-model-list');
+    list.innerHTML = '';
+    customModels.forEach(model => {
+      list.insertAdjacentHTML('beforeend', `
+        <div class="model-option" onclick="selectModel('${model.name}', '${model.image}', '')">
+          <img src="${model.image}" alt="${model.name}"><p>${model.name}</p>
+        </div>
+      `);
+    });
+    modal.style.display = 'flex';
+  }
+
+  function closeCustomModal() {
+    document.getElementById('customModelModal').style.display = 'none';
+  }
+
+  function previewSong(event) {
+    const file = event.target.files[0];
+    const audio = document.getElementById('preview-audio');
+    if (file) {
+      const url = URL.createObjectURL(file);
+      audio.src = url;
+      audio.style.display = 'block';
+    }
+  }
+
+  function uploadSong() {
+    const fileInput = document.getElementById('song');
+    const file = fileInput.files[0];
+    if (!selectedModel) {
+      alert("👤 AI 음색 모델을 선택해주세요!");
+      return;
+    }
+    if (!file) {
+      alert("🎵 노래 파일을 선택해주세요!");
+      return;
+    }
+    const formData = new FormData();
+    formData.append('song', file);
+    formData.append('model', selectedModel);
 
     fetch('http://127.0.0.1:5000/upload', {
-        method: 'POST',
-        body: formData
-      })
-      .then(res => {
-        if (!res.ok) throw new Error("서버 응답 실패");
-        return res.json();
-      })
-      .then(data => {
-        alert(data.message + " (파일명: " + data.filename + ")");
-      })
-      .catch(err => {
-        console.error(err);
-        alert("업로드 중 오류 발생: " + err.message);
-      });
-}
+      method: 'POST',
+      body: formData
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("서버 응답 실패");
+      return res.json();
+    })
+    .then(data => {
+      alert(data.message + " (파일명: " + data.filename + ")");
+    })
+    .catch(err => {
+      console.error(err);
+      alert("업로드 중 오류 발생: " + err.message);
+    });
+  }
+
+  window.onload = () => {
+    loadModels();
+  }
+
+  window.onclick = function(e) {
+    const dropdown = document.getElementById('dropdown-options');
+    const modal = document.getElementById('customModelModal');
+    if (!e.target.closest('.dropdown')) {
+      dropdown.style.display = 'none';
+    }
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  }
 </script>
 
 </body>
