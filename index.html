@@ -256,45 +256,54 @@
     options.style.display = options.style.display === 'block' ? 'none' : 'block';
   }
 
-  function selectModel(name, imgPath, samplePath) {
-    selectedModel = name;
-    const modelBox = document.getElementById('selected-model');
-    modelBox.innerHTML = `
-      <span class="model-img-placeholder">
-        <img src="${imgPath}" alt="${name}">
-      </span>
-      <span class="model-name">${name} 선택됨</span>
-    `;
-    document.getElementById('dropdown-options').style.display = 'none';
-    closeCustomModal();
-
-    if (samplePath) {
-      const previewDiv = document.getElementById('model-preview');
-      const player = document.getElementById('sample-player');
-      player.src = samplePath;
-      previewDiv.style.display = 'block';
-    } else {
-      document.getElementById('model-preview').style.display = 'none';
-    }
-  }
+  
 
   function loadModels() {
-    const options = document.getElementById('dropdown-options');
-    options.innerHTML = '';
-    defaultModels.forEach(model => {
-      options.insertAdjacentHTML('beforeend', `
-        <div class="model-option" onclick="selectModel('${model.name}', '${model.image}', '${model.sample}')">
-          <img src="${model.image}" alt="${model.name}">
-          <p>${model.name}</p>
-        </div>
-      `);
-    });
+  const options = document.getElementById('dropdown-options');
+  options.innerHTML = '';
+
+  defaultModels.forEach(model => {
     options.insertAdjacentHTML('beforeend', `
-      <div class="fixed-option" onclick="openCustomModal()">
-        ➕ 내가 만든 모델 선택하기
+      <div class="model-option" onclick="selectModel('${model.name}', '${model.image}', '${model.sample}', event)">
+        <img src="${model.image}" alt="${model.name}">
+        <p>${model.name}</p>
       </div>
     `);
+  });
+
+  options.insertAdjacentHTML('beforeend', `
+    <div class="fixed-option" onclick="openCustomModal(); event.stopPropagation();">
+      ➕ 내가 만든 모델 선택하기
+    </div>
+  `);
+}
+
+  function selectModel(name, imgPath, samplePath, event = null) {
+  if (event) event.stopPropagation();  // ✅ 드롭다운 클릭 버블링 차단
+
+  selectedModel = name;
+
+  const modelBox = document.getElementById('selected-model');
+  modelBox.innerHTML = `
+    <span class="model-img-placeholder">
+      <img src="${imgPath}" alt="${name}">
+    </span>
+    <span class="model-name">${name} 선택됨</span>
+  `;
+
+  document.getElementById('dropdown-options').style.display = 'none'; // ✅ 드롭다운 닫기
+  closeCustomModal(); // ✅ 모달도 닫기 (필요시)
+
+  const previewDiv = document.getElementById('model-preview');
+  const player = document.getElementById('sample-player');
+  if (samplePath) {
+    player.src = samplePath;
+    previewDiv.style.display = 'block';
+  } else {
+    previewDiv.style.display = 'none';
   }
+}
+
 
   function openCustomModal() {
     const modal = document.getElementById('customModelModal');
