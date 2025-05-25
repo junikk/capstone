@@ -5,6 +5,107 @@
   <meta charset="UTF-8">
   <title>My Voice, My Song - AI 노래 커버</title>
   <style>
+
+
+#model-voice-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* 상단 기준 */
+  margin-top: 2px; /* 아주 미세하게 정렬 */
+}
+
+
+.selected-model-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.voice-sample-label {
+  font-size: 12px;
+  margin-bottom: 2px;
+  color: #555;
+  
+}
+
+
+.model-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+#model-voice-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background-color: #007bff;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px; 
+}
+
+#model-voice-btn:hover {
+  background-color: #0056b3;
+}
+
+
+.sample-select-wrapper select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.sample-select-wrapper {
+  display: flex;
+  align-items: stretch;  /* ✅ 요소 높이 정확히 맞춤 */
+  gap: 8px;
+  margin-bottom: 10px;
+  height: 36px;  /* ✅ 전체 행 높이 고정 */
+}
+
+.sample-select-wrapper select {
+  flex: 1;
+  padding: 6px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  height: 100%; /* ✅ wrapper 높이에 맞춤 */
+  box-sizing: border-box;
+}
+
+
+
+#sample-play-btn {
+  width: 36px;
+  height: 100%; /* ✅ wrapper 높이에 맞춤 */
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background-color: #007bff;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px; 
+}
+
+
+
+#sample-play-btn:hover {
+  background-color: #0056b3;
+}
+
     body {
       font-family: 'Arial', sans-serif;
       margin: 0;
@@ -204,8 +305,9 @@
       <h1>AI 노래 커버</h1>
 
 
-  <label>👤 AI 음색 모델</label>
-  <div class="dropdown" onclick="toggleDropdown()">
+<label>👤 AI 음색 모델</label>
+<div class="model-select-wrapper">
+  <div class="dropdown" onclick="toggleDropdown()" style="flex: 1;">
     <div id="selected-model">
       <span class="model-img-placeholder"></span>
       <span class="model-name">AI 모델 선택하기</span>
@@ -213,11 +315,51 @@
     <div class="dropdown-options" id="dropdown-options"></div>
   </div>
 
-  <div id="model-preview" style="display:none; margin-top: 15px;">
-    <label>🎧 선택된 모델 미리듣기</label>
-    <audio id="sample-player" controls></audio>
+  <!-- ✅ 모델 선택 시만 나타나는 실제 음성 청취 버튼 -->
+  <div class="selected-model-wrapper" id="model-voice-wrapper" style="display: none;">
+    <div class="voice-sample-label">🎤 학습에 사용된 실제 음성</div>
+    <button id="model-voice-btn" onclick="toggleModelVoice()">▶</button>
+    <audio id="model-voice-audio" style="display: none;"></audio>
   </div>
+</div>
 
+
+
+
+
+
+
+
+<label for="sampleSelect">🎧 미리듣기 샘플 선택</label>
+<div class="sample-select-wrapper">
+  <select id="sampleSelect" onchange="loadSamplePreview(this.value)">
+    <option value="">-- 샘플을 선택하세요 --</option>
+    <option value="sample1">1. Super Shy - New Jeans</option>
+    <option value="sample2">2. Peaches - Justin Bieber</option>
+    <option value="sample3">3. Sugar - Maroon 5</option>
+    <option value="sample4">4. Seven - Jungkook</option>
+    <option value="sample5">5. Happy - DAY6</option>
+    <option value="sample6">6. 내이름맑음 - QWER</option>
+  </select>
+  <!-- ✅ 추가된 원곡 재생기 -->
+    <button id="sample-play-btn" onclick="toggleInlinePlay()" style="display: none;">▶</button>
+  <audio id="sample-original-inline" style="display: none;"></audio>
+  
+</div>
+
+
+<div id="sample-preview" style="margin-top: 15px; display:none;">
+
+<!-- AI 커버 제목 표시 -->
+<p id="sample-title" style="font-weight: bold; margin-top: 10px;">🤖 AI 커버:</p>
+<audio id="sample-ai" controls></audio>
+
+</div>
+
+
+
+
+  
   <label for="song">🎵 노래 파일 업로드</label>
   <input type="file" id="song" name="song" accept="audio/*" onchange="previewSong(event)">
   <audio id="preview-audio" controls style="display:none;"></audio>
@@ -237,14 +379,26 @@
   </div>
 
 <script>
+  // 이게있어야하나? 아래 loadSamplePreview에서 한번만 정의해줘도될것 같은데?
+  const modelFileMap = {
+  '이준익': 'junik',
+  '마이클잭슨': 'mj',
+  '박명수': 'park',
+  '징크스': 'jinx',
+  '아이유': 'iu',
+  '카리나': 'karina',
+  '랄로':'ralo'
+};
+
   let selectedModel = null;
   const defaultModels = [
-    { name: '이준익', image: 'junik.jpg', sample: 'junik_sample.mp3' },
-    { name: '마이클잭슨', image: 'mj.jpg', sample: 'mj_sample.mp3' },
-    { name: '박명수', image: 'park.jpg', sample: 'park_sample.mp3' },
-    { name: '징크스', image: 'jinx.jpg', sample: 'jinx_sample.mp3' },
-    { name: '아이유', image: 'iu.png', sample: 'iu_sample.mp3' },
-    { name: '카리나', image: 'karina.jpg', sample: 'karina_sample.mp3' }
+    { name: '이준익', image: 'junik.jpg', sample: 'junik_sample.mp3',original: 'original.mp3', voiceSample: 'junik_voice.mp3' },
+    { name: '마이클잭슨', image: 'mj.jpg', sample: 'mj_sample.mp3',original: 'original.mp3', voiceSample: 'mj_voice.mp3' },
+    { name: '박명수', image: 'park.jpg', sample: 'park_sample.mp3' ,original: 'original.mp3', voiceSample: 'park_voice.mp3'},
+    { name: '징크스', image: 'jinx.jpg', sample: 'jinx_sample.mp3' ,original: 'original.mp3', voiceSample: 'jinx_voice.mp3'},
+    { name: '아이유', image: 'iu.png', sample: 'iu_sample.mp3' ,original: 'original.mp3', voiceSample: 'iu_voice.mp3'},
+    { name: '카리나(미완성)', image: 'karina.jpg', sample: 'karina_sample.mp3',original: 'original.mp3', voiceSample: 'karina_voice.mp3' },
+    { name: '랄로', image: 'ralo.png', sample: 'ralo_sample.mp3',original: 'original.mp3', voiceSample: 'ralo_voice.mp3' }
   ];
   const customModels = [
     { name: '내모델1', image: 'custom1.jpg' },
@@ -256,15 +410,97 @@
     options.style.display = options.style.display === 'block' ? 'none' : 'block';
   }
 
-  
 
-  function loadModels() {
+ function selectModel(name, imgPath, samplePath = '', event = null, originalPath = '', voiceSample = '') {
+  if (event) event.stopPropagation();
+  selectedModel = name;
+
+  // 모델 UI 박스 업데이트
+  const modelBox = document.getElementById('selected-model');
+  modelBox.innerHTML = `
+    <span class="model-img-placeholder"><img src="${imgPath}" alt="${name}"></span>
+    <span class="model-name">${name} 선택됨</span>
+  `;
+
+  document.getElementById('dropdown-options').style.display = 'none';
+  closeCustomModal();
+
+  // ✅ 실제 목소리 샘플 오디오 및 버튼 처리
+  const voiceWrapper = document.getElementById("model-voice-wrapper");
+  const voiceBtn = document.getElementById("model-voice-btn");
+  const voiceAudio = document.getElementById("model-voice-audio");
+
+  if (voiceSample) {
+    voiceAudio.src = `samples/voices/${voiceSample}`;
+    voiceAudio.load();
+    voiceWrapper.style.display = "flex";
+    voiceBtn.textContent = "▶";
+  } else {
+    voiceAudio.src = "";
+    voiceWrapper.style.display = "none";
+  }
+
+  // ✅ 샘플 선택 및 미리듣기 초기화
+  document.getElementById("sampleSelect").selectedIndex = 0;
+
+  const inlineOriginal = document.getElementById("sample-original-inline");
+  inlineOriginal.pause();
+  inlineOriginal.currentTime = 0;
+  inlineOriginal.src = "";
+  inlineOriginal.style.display = "none";
+
+  const sampleBtn = document.getElementById("sample-play-btn");
+  sampleBtn.style.display = "none";
+  sampleBtn.textContent = "▶";
+
+  const aiPlayer = document.getElementById("sample-ai");
+  aiPlayer.pause();
+  aiPlayer.currentTime = 0;
+  aiPlayer.src = "";
+
+  document.getElementById("sample-preview").style.display = "none";
+  document.getElementById("sample-title").innerText = "🤖 AI 커버:";
+}
+
+
+
+
+function toggleModelVoice() {
+  const audio = document.getElementById("model-voice-audio");
+  const btn = document.getElementById("model-voice-btn");
+
+  if (audio.paused) {
+    audio.play();
+    btn.textContent = "⏸";
+  } else {
+    audio.pause();
+    btn.textContent = "▶";
+  }
+
+  audio.onended = () => {
+    btn.textContent = "▶";
+  };
+}
+
+
+
+
+
+ function loadModels() {
   const options = document.getElementById('dropdown-options');
   options.innerHTML = '';
 
   defaultModels.forEach(model => {
     options.insertAdjacentHTML('beforeend', `
-      <div class="model-option" onclick="selectModel('${model.name}', '${model.image}', '${model.sample}', event)">
+      <div class="model-option" onclick="selectModel(
+  '${model.name}',
+  '${model.image}',
+  '${model.sample}',
+  event,
+  '${model.original}',
+  '${model.voiceSample}'
+)"
+>
         <img src="${model.image}" alt="${model.name}">
         <p>${model.name}</p>
       </div>
@@ -276,32 +512,6 @@
       ➕ 내가 만든 모델 선택하기
     </div>
   `);
-}
-
-  function selectModel(name, imgPath, samplePath, event = null) {
-  if (event) event.stopPropagation();  // ✅ 드롭다운 클릭 버블링 차단
-
-  selectedModel = name;
-
-  const modelBox = document.getElementById('selected-model');
-  modelBox.innerHTML = `
-    <span class="model-img-placeholder">
-      <img src="${imgPath}" alt="${name}">
-    </span>
-    <span class="model-name">${name} 선택됨</span>
-  `;
-
-  document.getElementById('dropdown-options').style.display = 'none'; // ✅ 드롭다운 닫기
-  closeCustomModal(); // ✅ 모달도 닫기 (필요시)
-
-  const previewDiv = document.getElementById('model-preview');
-  const player = document.getElementById('sample-player');
-  if (samplePath) {
-    player.src = samplePath;
-    previewDiv.style.display = 'block';
-  } else {
-    previewDiv.style.display = 'none';
-  }
 }
 
 
@@ -379,6 +589,94 @@
       modal.style.display = 'none';
     }
   }
+
+
+function loadSamplePreview(sampleId) {
+  const modelFileMap = {
+    '이준익': 'junik',
+    '마이클잭슨': 'mj',
+    '박명수': 'park',
+    '징크스': 'jinx',
+    '아이유': 'iu',
+    '카리나': 'karina',
+    '랄로':'ralo'
+  };
+
+  if (!sampleId || !selectedModel) {
+    alert("🎤 먼저 AI 모델을 선택해주세요.");
+    document.getElementById("sample-original-inline").style.display = "none";
+    document.getElementById("sample-play-btn").style.display = "none";
+    return;
+  }
+
+  const modelKey = modelFileMap[selectedModel];
+  if (!modelKey) {
+    alert("선택된 모델에 대한 샘플 미리듣기가 없습니다.");
+    return;
+  }
+
+  // 🎯 샘플 이름 가져오기
+  const select = document.getElementById("sampleSelect");
+  const sampleText = select.options[select.selectedIndex].text;
+
+  const originalPath = `samples/${sampleId}_original.mp3`;
+  const aiPath = `samples/${sampleId}_${modelKey}.mp3`;
+
+  // 🎧 리스트 옆 원곡 플레이어 설정
+  const inlinePlayer = document.getElementById("sample-original-inline");
+  const playBtn = document.getElementById("sample-play-btn");
+
+  inlinePlayer.src = originalPath;
+  inlinePlayer.load();
+  inlinePlayer.style.display = "none";
+  playBtn.style.display = "inline-block";
+  playBtn.textContent = "▶";
+
+  // 🔊 AI 커버 제목 업데이트
+  document.getElementById("sample-title").innerText = `🤖 AI 커버 미리듣기 : ${sampleText} - ${selectedModel}(AI)`;
+
+  // 아래 비교용 미리듣기 표시
+  document.getElementById("sample-ai").src = aiPath;
+  document.getElementById("sample-preview").style.display = "block";
+}
+
+
+function toggleInlinePlay() {
+  const audio = document.getElementById("sample-original-inline");
+  const btn = document.getElementById("sample-play-btn");
+
+  if (audio.paused) {
+    audio.play();
+    btn.textContent = "⏸";
+  } else {
+    audio.pause();
+    btn.textContent = "▶";
+  }
+
+  // 재생이 끝나면 다시 ▶로 복귀
+  audio.onended = () => {
+    btn.textContent = "▶";
+  };
+}
+
+function toggleModelVoicePlay() {
+  const player = document.getElementById("model-voice-player");
+  const btn = document.getElementById("model-play-btn");
+
+  if (player.paused) {
+    player.play();
+    btn.textContent = "⏸";
+  } else {
+    player.pause();
+    btn.textContent = "▶";
+  }
+
+  player.onended = () => {
+    btn.textContent = "▶";
+  };
+}
+
+
 </script>
 
 </body>
