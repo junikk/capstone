@@ -7,6 +7,38 @@
   <style>
 
 
+button:disabled {
+  background-color: #cccccc !important;
+  cursor: not-allowed;
+}
+
+
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#loading-spinner {
+  display: none;
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+}
+
+
+
 #model-voice-wrapper {
   display: flex;
   flex-direction: column;
@@ -359,12 +391,70 @@
 
 
 
+
+
+
+
   
   <label for="song">🎵 노래 파일 업로드</label>
   <input type="file" id="song" name="song" accept="audio/*" onchange="previewSong(event)">
   <audio id="preview-audio" controls style="display:none;"></audio>
 
-  <button onclick="uploadSong()">AI 커버 생성</button>
+  <button id="generate-btn" onclick="uploadSong()">AI 커버 생성</button>
+
+<div id="cover-result" style="display:none; margin-top: 30px;">
+  <div style="
+    background-color: #f9f9f9;
+    border: 2px dashed #007bff;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  ">
+  <!-- 모델 이미지 & 이름 -->
+<div id="model-info" style="margin-bottom: 16px;">
+  <img id="model-result-img" src="" alt="모델 이미지" style="
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 8px;
+    border: 2px solid #007bff;
+  ">
+</div>
+
+  <div id="model-result-name" style="
+    font-size: 18px;
+    font-weight: bold;
+    color: #007bff;
+  ">모델명 스타일로 커버가 완성되었어요!</div>
+
+
+    <audio id="cover-audio" controls style="width: 100%; margin-bottom: 16px;"></audio>
+
+    <a id="download-link" href="#" download style="
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 15px;
+      transition: background-color 0.3s;
+    ">📥 커버곡 다운로드</a>
+
+    <div id="processing-time" style="margin-top: 12px; color: #666; font-size: 14px;"></div>
+  </div>
+</div>
+
+
+
+</div>
+
+<div id="loading-spinner">
+  <div class="spinner"></div>
+  <div style="margin-top: 8px;">AI 커버 생성 중입니다...</div>
 </div>
 
 
@@ -543,37 +633,100 @@ function toggleModelVoice() {
     }
   }
 
+ 
   function uploadSong() {
-    const fileInput = document.getElementById('song');
-    const file = fileInput.files[0];
-    if (!selectedModel) {
-      alert("👤 AI 음색 모델을 선택해주세요!");
-      return;
-    }
-    if (!file) {
-      alert("🎵 노래 파일을 선택해주세요!");
-      return;
-    }
-    const formData = new FormData();
-    formData.append('song', file);
-    formData.append('model', selectedModel);
 
-    fetch('http://127.0.0.1:5000/upload', {
-      method: 'POST',
-      body: formData
-    })
-    .then(res => {
-      if (!res.ok) throw new Error("서버 응답 실패");
-      return res.json();
-    })
-    .then(data => {
-      alert(data.message + " (파일명: " + data.filename + ")");
-    })
-    .catch(err => {
-      console.error(err);
-      alert("업로드 중 오류 발생: " + err.message);
-    });
+  
+  const fileInput = document.getElementById('song');
+  const file = fileInput.files[0];
+  const loading = document.getElementById('loading-spinner');
+  const button = document.getElementById('generate-btn');  // ✅ 고유 버튼
+
+  if (!selectedModel) {
+    alert("👤 AI 음색 모델을 선택해주세요!");
+    return;
   }
+  if (!file) {
+    alert("🎵 노래 파일을 선택해주세요!");
+    return;
+  }
+
+  const startTime = new Date();  // 🔥 fetch 요청 전에 정의
+
+  // 로딩 표시 및 버튼 비활성화
+  loading.style.display = 'block';
+  button.disabled = true;
+  button.textContent = "처리 중...";
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('model', selectedModel);
+
+  // 👉 FormData 로그 출력 (fetch 전에)
+  for (const [key, value] of formData.entries()) {
+    console.log(`📦 FormData: ${key} =`, value);
+  }
+
+  fetch('http://127.0.0.1:5000/upload', {
+    method: 'POST',
+    body: formData
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("서버 응답 실패");
+    return res.json();
+  })
+  .then(data => {
+    alert("✅ 커버곡 생성 완료!\n파일 경로: " + data.url);
+
+    const audio = document.getElementById("cover-audio");
+    const resultBox = document.getElementById("cover-result");
+
+    console.log("🎯 서버 응답 데이터:", data);  // 🔍 먼저 확인
+    if (!data || !data.url) {
+     throw new Error("서버에서 URL 정보를 받지 못했습니다.");
+    }
+    const fileUrl = data.url.replace(/\\/g, '/');
+
+    audio.src = fileUrl;
+
+    // 다운로드 링크 설정
+    const downloadLink = document.getElementById("download-link");
+    downloadLink.href = fileUrl;
+
+    const filenameOnly = fileUrl.split("/").pop();
+    downloadLink.setAttribute("download", filenameOnly);
+
+
+    audio.load();
+    resultBox.style.display = "block";
+
+    // 모델 이미지 및 이름 설정
+    const modelInfoImg = document.getElementById("model-result-img");
+    const modelInfoName = document.getElementById("model-result-name");
+
+    // defaultModels 배열에서 선택된 모델 정보 찾기
+    const model = defaultModels.find(m => m.name === selectedModel);
+    if (model) {
+      modelInfoImg.src = model.image;
+      modelInfoName.innerText = `${model.name} 스타일로 커버가 완성되었어요!`;
+    }
+    const endTime = new Date();
+    const elapsed = ((endTime - startTime) / 1000).toFixed(2);
+    document.getElementById("processing-time").innerText = `⏱ 처리 시간: ${elapsed}초`;
+
+  })
+  .catch(err => {
+    console.error(err);
+    alert("❌ 오류 발생: " + err.message);
+  })
+  .finally(() => {
+    loading.style.display = 'none';
+    button.disabled = false;
+    button.textContent = "AI 커버 생성";  
+  });
+}
+
+
 
   window.onload = () => {
     loadModels();
